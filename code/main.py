@@ -3,6 +3,7 @@ import scraping_funcs as scr
 import merging_funcs as mrg
 import plots
 import os
+import utils as ut
 
 # # Update your data to latest available
 def scrape_update_data():
@@ -143,7 +144,7 @@ def run():
     # merge_datasets()
     make_plots()
     make_html()
-    # ut.git_push_new_html()
+    ut.git_push_new_html()
 
 
 if __name__ == "__main__":

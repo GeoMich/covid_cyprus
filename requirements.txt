@@ -7,3 +7,4 @@ bs4
 glob2
 pdfminer
 kaleido
+gitpython
