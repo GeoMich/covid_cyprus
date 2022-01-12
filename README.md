@@ -1,4 +1,4 @@
-# ** Website with covid-19 and vaccination data for Cyprus **
+# Website with covid-19 & vaccination data for Cyprus
 The website: https://geomich.github.io/covid_cyprus/covid_cy_report.html
 
 Here I am using data from Cyprus' Ministry of Health to create some interactive plots that allow quick & comprehensive overview of the status of the pandemic in Cyprus.
