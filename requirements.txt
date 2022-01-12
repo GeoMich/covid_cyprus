@@ -1,0 +1,9 @@
+pandas
+numpy 
+plotly
+datetime
+requests
+bs4
+glob2
+pdfminer
+kaleido
