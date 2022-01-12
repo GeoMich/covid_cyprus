@@ -293,6 +293,8 @@ def df_append_missing_from_PIO(df):
 
 
 def git_push_new_html():
+    "pushing to remote"
+
     PATH_OF_GIT_REPO = r"/home/geomi/gm/projects/playground/covid_cy/.git"  # make sure .git folder is properly configured
     COMMIT_MESSAGE = "updating html file"
     try:
