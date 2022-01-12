@@ -155,7 +155,7 @@ def download_sum_stats():
     """
 
     # Data scraping
-    URL_DATA = "https://www.data.gov.cy/sites/default/files/CY%20Covid19%20Open%20Data%20-%20Extended%20-%20new_242.csv"
+    URL_DATA = "https://www.data.gov.cy/sites/default/files/CY%20Covid19%20Open%20Data%20-%20Extended%20-%20new_245.csv"
     print("Downloading dataset...")
     df = pd.read_csv(URL_DATA)
 
@@ -174,11 +174,11 @@ def download_sum_stats():
 
 def download_vaccination_data():
     """Download dataset with vaccination per week, target group, vaccine, dose etc"""
-
+    total_population = 888_005
     print("Downloading vaccination dataset...")
-    url_vaccination = "https://www.data.gov.cy/sites/default/files/CY%20Vaccination%20Data%20by%20Target%20Group_18.csv"
+    url_vaccination = "https://www.data.gov.cy/sites/default/files/CY%20Vaccination%20Data%20by%20Target%20Group_19.csv"
     df_v1 = pd.read_csv(url_vaccination)
-
+    df_v1["Population"] = total_population
     last_week = df_v1["YearWeekISO"].iloc[-1]
     print(f"Vaccination data are available until {last_week}.")
     print("Saving vaccination dataset...")

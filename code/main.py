@@ -74,58 +74,80 @@ def make_html():
     <html>
 
     <head>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
         <link rel="stylesheet" type="text/css" href="code/css/style.css">
         <script src='https://cdn.plot.ly/plotly-latest.min.js'></script>
     </head>
 
-    <body>
+    <body class="container">
         <h1>Covid-19 & Vaccination numbers in Cyprus</h1>
         <p>Produced by <i>Georgios Michail</i></p>
         
         <p>These set of graphs on the situation of the COVID-19 pandemic in Cyprus are produced & updated based on data from the ministry of health.\
             \nThe figures are interactive and you can zoom in to get details, or hover over some points to get extra information.</p>
-
+        
         <h3>Cases, hospitalizations & deaths</h3>
 
         <p>The first two figures show the time course of the positive cases, hospitalizations and deaths related with the COVID-19.</p>
-        {div_dict["cases_hosp_deaths_div"]}
         <br>
+
+        {div_dict["cases_hosp_deaths_div"]}
+        <br><br>
+
         {div_dict["deaths_div"]}
-        
-        <h3>hospitalizations by vaccination</h3>
+        <br>
+
+        <h3>Hospitalizations by vaccination status</h3>
+        <br>
 
         <p>The next graph shows the hospitalizations related to COVID-19 by vaccination status. Here, one can easily  notice that the possibility \
             to be hospitalized is larger for unvaccinated people. </p>
+        <br>
+
         {div_dict["hospitalizations_per_vaccination_div"]}
+        <br>
 
         <h3>But how much more likely is to end up being hospitalized after infection if unvaccinated?</h3>
+        <br>
+
         <p>Some people based on figures similar to the previous one say that, if on one day we have 80 hospitalizions \
             unvaccinated and 20 of vaccinated people, this means it's 4 times more likely to be hospitalized for unvaccinated.\
             This is actually not accurate, because when doing this calculation we don't take into account the overall size\
-            of vaccinated and unvaccinated populations from which this hospitalizations occur. \
+            of vaccinated and unvaccinated populations from which these hospitalizations come from. \
             To be correct, we need to compare hospitalizations for the same number of vaccinated and unvaccinated people.\
             This is what I show in the following figure, depicting hospitalizations per 100 000 vaccinated and unvaccinated people. \
             And here it's clear the chances to get hospitalized when infected with COVID-19 if unvaccinated are from 5 up \
             to 18 times higher. </p>
-        {div_dict["hospitalizations_per_vacc_per_100_000_div"]}
+        <br>
 
-         <p>And here you see the ratio between hospitalizations in 100 000 unvaccinated and 100 000 vaccinated people, \
+        {div_dict["hospitalizations_per_vacc_per_100_000_div"]}
+        <br>
+        
+        <p>And here you see the ratio between hospitalizations in 100 000 unvaccinated and 100 000 vaccinated people, \
             which corresponds to how many times more likely is to get hospitalized. One can notice here the ratio is \
             increasing during peaks of the pandemic. </p>
+        <br>
 
         {div_dict["hospitalizations_per_vacc_per_100_000_ratio_div"]}
+        <br>
 
         <h3>And what about the severity of hospitalizations?</h3>
-
+        <br>
         <p>This figure splits hospitalizations in 3 categories:</p>
         <p>a. Patients not in an Intensive Care Unit (ICU)</p>
         <p>b. Patients in ICU but not ventilated</p>
         <p>c. Patients in ICU & ventilated </p></p>
+        <br>
+
         {div_dict["hospitalizations_per_severity_div"]}
+        <br>
 
         <h3>Immunity wall of Cyprus</h3>
+        <br>
 
         <p>What is the vaccination level for the different age groups? </p>
+        <br>
+
         {div_dict["vaccinations_by_age_div"]}
 
     </body>

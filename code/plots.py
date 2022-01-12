@@ -359,7 +359,6 @@ def cases_hosp_death(df):
     fig.update_traces(line=dict(width=7), selector=dict(name="Deaths, 14-day average"))
 
     # fig.show()
-
     save_figure_many_forms(fig, "deaths", 900, 600, 3.0)
 
 
@@ -616,7 +615,7 @@ def hospitalizations_per_vacc_per_100_00(df, dfv):
         width=800,
         height=500,
         labels={"ratio_hosp_unvacc_vacc": "Ratio unvaccinated : vaccinated"},
-        title="How many times more likely is to be hospitalized if unvaccinated",
+        title="How many times more likely is to be hospitalized if unvaccinated compared to vaccinated",
     )
 
     fig.update_layout(
