@@ -42,10 +42,10 @@ def make_plots():
     # Load vaccination data
     dfv = pd.read_csv("../data/vaccination_dataset.csv", index_col=[0])
 
-    plots.hospitalisations_per_vaccination(df)
-    plots.hospitalisations_by_severity(df)
+    plots.hospitalizations_per_vaccination(df)
+    plots.hospitalizations_by_severity(df)
     plots.cases_hosp_death(df)
-    plots.hospitalisations_per_vacc_per_100_00(df, dfv)
+    plots.hospitalizations_per_vacc_per_100_00(df, dfv)
     plots.vaccinations_by_age(dfv)
 
 
@@ -56,10 +56,10 @@ def make_html():
     html_figs_div = [
         "cases_hosp_deaths_div.html",
         "deaths_div.html",
-        "hospitalisations_per_severity_div.html",
-        "hospitalisations_per_vacc_per_100_000_div.html",
-        "hospitalisations_per_vacc_per_100_000_ratio_div.html",
-        "hospitalisations_per_vaccination_div.html",
+        "hospitalizations_per_severity_div.html",
+        "hospitalizations_per_vacc_per_100_000_div.html",
+        "hospitalizations_per_vacc_per_100_000_ratio_div.html",
+        "hospitalizations_per_vaccination_div.html",
         "vaccinations_by_age_div.html",
     ]
 
@@ -84,43 +84,43 @@ def make_html():
         <p>These set of graphs on the situation of the COVID-19 pandemic in Cyprus are produced & updated based on data from the ministry of health.\
             \nThe figures are interactive and you can zoom in to get details, or hover over some points to get extra information.</p>
 
-        <h3>Cases, hospitalisations & deaths</h3>
+        <h3>Cases, hospitalizations & deaths</h3>
 
-        <p>The first two figures show the time course of the positive cases, hospitalisations and deaths related with the COVID-19.</p>
+        <p>The first two figures show the time course of the positive cases, hospitalizations and deaths related with the COVID-19.</p>
         {div_dict["cases_hosp_deaths_div"]}
         <br>
         {div_dict["deaths_div"]}
         
-        <h3>Hospitalisations by vaccination</h3>
+        <h3>hospitalizations by vaccination</h3>
 
-        <p>The next graph shows the hospitalisations related to COVID-19 by vaccination status. Here, one can easily  notice that the possibility \
-            to be hospitalised is larger for unvaccinated people. </p>
-        {div_dict["hospitalisations_per_vaccination_div"]}
+        <p>The next graph shows the hospitalizations related to COVID-19 by vaccination status. Here, one can easily  notice that the possibility \
+            to be hospitalized is larger for unvaccinated people. </p>
+        {div_dict["hospitalizations_per_vaccination_div"]}
 
-        <h3>But how much more likely is to end up in hospitalised after infection if unvaccinated?</h3>
-        <p>Some people based on figures similar to the previous one say that, if on one day we have 80 of hospitalised being \
-            unvaccinated and 20 vaccinated, this means it's 4 times more likely to be hospitalized for unvaccinated.\
+        <h3>But how much more likely is to end up being hospitalized after infection if unvaccinated?</h3>
+        <p>Some people based on figures similar to the previous one say that, if on one day we have 80 hospitalizions \
+            unvaccinated and 20 of vaccinated people, this means it's 4 times more likely to be hospitalized for unvaccinated.\
             This is actually not accurate, because when doing this calculation we don't take into account the overall size\
-            of vaccinated and unvaccinated population from which this hospitalisations occur. \
+            of vaccinated and unvaccinated populations from which this hospitalizations occur. \
             To be correct, we need to compare hospitalizations for the same number of vaccinated and unvaccinated people.\
-            This is what I show in the following figure, depicting hospitalisations per 100 000 vaccinated and unvaccinated people. \
-            And here it's clear the chances to get hospitalised when infected with COVID-19 if unvaccinated are from 5 up \
+            This is what I show in the following figure, depicting hospitalizations per 100 000 vaccinated and unvaccinated people. \
+            And here it's clear the chances to get hospitalized when infected with COVID-19 if unvaccinated are from 5 up \
             to 18 times higher. </p>
-        {div_dict["hospitalisations_per_vacc_per_100_000_div"]}
+        {div_dict["hospitalizations_per_vacc_per_100_000_div"]}
 
-         <p>And here you see the ratio between hospitalisations in 100 000 unvaccinated and 100 000 vaccinated people, \
+         <p>And here you see the ratio between hospitalizations in 100 000 unvaccinated and 100 000 vaccinated people, \
             which corresponds to how many times more likely is to get hospitalized. One can notice here the ratio is \
             increasing during peaks of the pandemic. </p>
 
-        {div_dict["hospitalisations_per_vacc_per_100_000_ratio_div"]}
+        {div_dict["hospitalizations_per_vacc_per_100_000_ratio_div"]}
 
-        <h3>And what about the severity of hospitalisations?</h3>
+        <h3>And what about the severity of hospitalizations?</h3>
 
-        <p>This figure splits hospitalisations in 3 categories:</p>
+        <p>This figure splits hospitalizations in 3 categories:</p>
         <p>a. Patients not in an Intensive Care Unit (ICU)</p>
         <p>b. Patients in ICU but not ventilated</p>
         <p>c. Patients in ICU & ventilated </p></p>
-        {div_dict["hospitalisations_per_severity_div"]}
+        {div_dict["hospitalizations_per_severity_div"]}
 
         <h3>Immunity wall of Cyprus</h3>
 
@@ -141,8 +141,9 @@ def make_html():
 def run():
     # scrape_update_data()
     # merge_datasets()
-    # make_plots()
+    make_plots()
     make_html()
+    # ut.git_push_new_html()
 
 
 if __name__ == "__main__":

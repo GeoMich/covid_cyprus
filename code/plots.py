@@ -126,7 +126,7 @@ def hospitalizations_per_vaccination(df):
 def hospitalizations_by_severity(df):
 
     # Add non-icu cases
-    df["no_icu"] = df["hospitalized Cases"] - df["Incubated Cases"]
+    df["no_icu"] = df["Hospitalised Cases"] - df["Incubated Cases"]
     df["icu_nointub"] = df["Cases In ICUs"] - df["Incubated Cases"]
 
     # Create long-form df
@@ -222,7 +222,7 @@ def cases_hosp_death(df):
             "date",
             "daily new cases",
             "daily deaths",
-            "hospitalized Cases",
+            "Hospitalised Cases",
             "cases_movavg",
         ]
     ]
@@ -231,7 +231,7 @@ def cases_hosp_death(df):
         columns={
             "daily new cases": "cases",
             "daily deaths": "deaths",
-            "hospitalized Cases": "hospitalizations",
+            "Hospitalised Cases": "hospitalizations",
         }
     )
 
