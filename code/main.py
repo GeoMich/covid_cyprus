@@ -140,8 +140,8 @@ def make_html():
 
 
 def run():
-    # scrape_update_data()
-    # merge_datasets()
+    scrape_update_data()
+    merge_datasets()
     make_plots()
     make_html()
     ut.git_push_new_html()
