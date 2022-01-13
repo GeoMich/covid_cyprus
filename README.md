@@ -9,7 +9,7 @@ The graphs are updated every day based on the latest announcements of the minist
 
 # Running the project
 
-## Create activate environment
+## Create & activate environment
 `python3 -m venv cvd`
 
 `source cvd/bin/activate`
