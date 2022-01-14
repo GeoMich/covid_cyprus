@@ -12,8 +12,6 @@ from pdfminer.pdfinterp import PDFPageInterpreter
 from pdfminer.pdfpage import PDFPage
 import re
 
-from git import Repo
-
 
 def find_files_from_url(url):
     """Find links to files in a website"""
@@ -282,26 +280,3 @@ def df_append_missing_from_PIO(df):
         df_hosp_extra = df
 
     return df_hosp_extra
-
-
-# def git_push_new_html():
-#     # repo = git.Repo("https://github.com/GeoMich/covid_cyprus")
-#     # repo.git.add("--all")
-#     # repo.git.commit("-m", "updating html file")
-#     # origin = repo.remote(name="origin")
-#     # origin.push()
-
-
-def git_push_new_html():
-    "pushing to remote"
-    print("Git pushing html..")
-    PATH_OF_GIT_REPO = r"/home/geomi/gm/projects/playground/covid_cy/.git"  # make sure .git folder is properly configured
-    COMMIT_MESSAGE = "updating html file"
-    try:
-        repo = Repo(PATH_OF_GIT_REPO)
-        repo.git.add("covid_cy_report.html", update=True)
-        repo.index.commit(COMMIT_MESSAGE)
-        origin = repo.remote(name="origin")
-        origin.push()
-    except:
-        print("Some error occured while pushing the code")

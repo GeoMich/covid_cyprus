@@ -155,10 +155,9 @@ def download_sum_stats():
     """
 
     # Data scraping
-    URL_DATA = "https://www.data.gov.cy/sites/default/files/CY%20Covid19%20Open%20Data%20-%20Extended%20-%20new_245.csv"
+    URL_DATA = "https://www.data.gov.cy/sites/default/files/CY%20Covid19%20Open%20Data%20-%20Extended%20-%20new_246.csv"
     print("Downloading dataset...")
     df = pd.read_csv(URL_DATA)
-
     # Format DF
     df1 = df.copy()
     df1 = df1.replace(":", np.nan)

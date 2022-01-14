@@ -37,179 +37,6 @@ def save_figure_many_forms(fig, filename, png_w, png_h, png_scale):
     )
 
 
-def hospitalizations_per_vaccination(df):
-    """Area figure with hospizalations time series per vaccination status"""
-
-    # Turn df to long format
-    df_vacc = (
-        df.drop(
-            [
-                "perc_hosp_unvaccinated",
-                "n_hospitalized_unvaccinated",
-            ],
-            axis=1,
-        )
-        .rename(
-            columns={
-                "perc_hosp_vaccinated": "perc_hospitalized",
-                "n_hospitalized_vaccinated": "n_hospitalized",
-            }
-        )
-        .assign(Vaccination="Vaccinated")
-    )
-
-    df_unvacc = (
-        df.drop(
-            [
-                "perc_hosp_vaccinated",
-                "n_hospitalized_vaccinated",
-            ],
-            axis=1,
-        )
-        .rename(
-            columns={
-                "perc_hosp_unvaccinated": "perc_hospitalized",
-                "n_hospitalized_unvaccinated": "n_hospitalized",
-            }
-        )
-        .assign(Vaccination="Unvaccinated")
-    )
-
-    df_h1 = pd.concat([df_vacc, df_unvacc])
-
-    # Make plot
-    fig = px.area(
-        df_h1,
-        x="date",
-        y="n_hospitalized",
-        color="Vaccination",
-        custom_data=["Vaccination", "perc_hospitalized"],
-        width=900,
-        height=600,
-        color_discrete_map={
-            "Unvaccinated": "#D22727",
-            "Vaccinated": "#316F9A",
-        },
-        labels={"n_hospitalized": "Hospitalizations", "Vaccination": "Status"},
-        title="Hospitalizations by vaccination status (since July 16, 2021)",
-    )
-
-    fig.update_layout(
-        hoverlabel_font=dict(color="#2F2E31"),  # =white
-        font=dict(size=15, color="#2F2E31"),
-        legend={"traceorder": "reversed"},
-        plot_bgcolor="#FFEBD9",
-        paper_bgcolor="#FFEBD9",
-        yaxis=dict(
-            showgrid=True,
-            gridcolor="#FCD19C",
-            gridwidth=0.2,  # tried different values, same issue
-        ),
-        xaxis=dict(
-            showgrid=False,
-            range=["2021-07-16", df_h1["date"].iloc[-1].date()],
-            title="",
-        ),
-        hovermode="x unified",
-    )
-
-    fig.update_traces(
-        hovertemplate="<b>%{customdata[0]}</b>: %{y:.0f} ( %{customdata[1]:.1f}% )<extra></extra>"  # + " <br> %{x}",
-    )
-
-    # fig.show()
-
-    # Save figure
-    save_figure_many_forms(fig, "hospitalizations_per_vaccination", 900, 600, 3.0)
-
-
-def hospitalizations_by_severity(df):
-
-    # Add non-icu cases
-    df["no_icu"] = df["Hospitalised Cases"] - df["Incubated Cases"]
-    df["icu_nointub"] = df["Cases In ICUs"] - df["Incubated Cases"]
-
-    # Create long-form df
-    df_icu_intub = (
-        df.drop(["no_icu", "icu_nointub"], axis=1)
-        .rename(columns={"Incubated Cases": "Patients"})
-        .assign(Category="ICU, intubated")
-    )
-
-    df_icu_no_intub = (
-        df.drop(["no_icu", "Incubated Cases"], axis=1)
-        .rename(columns={"icu_nointub": "Patients"})
-        .assign(Category="ICU, not intubated")
-    )
-
-    df_no_icu = (
-        df.drop(["icu_nointub", "Incubated Cases"], axis=1)
-        .rename(columns={"no_icu": "Patients"})
-        .assign(Category="not ICU")
-    )
-
-    df_icu_long = pd.concat([df_icu_intub, df_icu_no_intub, df_no_icu])
-
-    # Plot using graph objects (allows more flexibility)
-    categories = ["ICU, intubated", "ICU, not intubated", "not ICU"]
-    color_map = {
-        "ICU, intubated": "#8E007D",
-        "ICU, not intubated": "#C800AF",
-        "not ICU": "#008564",
-    }
-    fig = go.Figure()
-    for category in categories:
-        df_tmp = df_icu_long.query("Category == @category")
-        fig.add_trace(
-            go.Scatter(
-                x=df_tmp["date"],
-                y=df_tmp["Patients"],
-                fill="tonexty",
-                name=category,
-                stackgroup="one",  # to stack them
-                line=dict(color=color_map[category]),
-            )
-        )
-
-    fig.add_trace(
-        go.Scatter(
-            x=df_icu_long["date"],
-            y=df_icu_long["Severe Cases"],
-            mode="lines",
-            name="Severe",
-            line=dict(color="#FFBD8A", width=3),
-        )  # , dash="dash", "dot", FFBD8A, "#FFA45F", #75E1FF"
-    )
-
-    fig.update_layout(
-        title=dict(text="Hospitalizations by severity"),
-        font=dict(size=15, color="#2F2E31"),
-        width=900,
-        height=600,
-        legend={"traceorder": "reversed"},
-        plot_bgcolor="#FFEBD9",
-        paper_bgcolor="#FFEBD9",
-        yaxis=dict(
-            title=dict(text="Hospitalizations"),
-            showgrid=True,
-            gridcolor="#FCD19C",
-            gridwidth=0.2,  # tried different values, same issue
-        ),
-        xaxis=dict(
-            showgrid=False,
-            # range=["2021-07-16","2022-01-06"],
-            title="",
-        ),
-        hovermode="x unified",
-        hoverlabel_font=dict(color="#2F2E31"),
-    )
-
-    # fig.show()
-
-    # Save figure
-    save_figure_many_forms(fig, "hospitalizations_per_severity", 900, 600, 3.0)
-
-
 def cases_hosp_death(df):
     """The classical plot with time course of cases, hospitalizations & deaths"""
 
@@ -235,131 +62,289 @@ def cases_hosp_death(df):
         }
     )
 
-    # Create long-form df
-    df_cases = (
-        df.drop(["deaths", "hospitalizations", "cases_movavg"], axis=1)
-        .rename(columns={"cases": "number"})
-        .assign(Category="Cases")
-    )
+    # Define names of parameters in plot in multiple languages
 
-    df_cases_movavg = (
-        df.drop(["deaths", "hospitalizations", "cases"], axis=1)
-        .rename(columns={"cases_movavg": "number"})
-        .assign(Category="Cases, 7-day average")
-    )
+    # For cases-hosp-deaths plot
+    languages = ["eng", "gr"]
+    columns = {"number": {"eng": "Number", "gr": "Αριθμός"}}
+    titles = {
+        "eng": "Daily new cases, hospitalizations & deaths related to COVID-19",
+        "gr": "Νέα ημερήσια κρούσματα, νοσηλείες και θάνατοι σχετιζόμενοι με COVID-19",
+    }
+    categories = {
+        "cases": {"eng": "Cases", "gr": "Κρούσματα"},
+        "cases_movavg": {
+            "eng": "Cases, 7-day average",
+            "gr": "Κρούσματα, <br>μεσ. όρος 7 ημερών",
+        },
+        "hospit": {"eng": "Hospitalizations", "gr": "Νοσηλείες"},
+        "deaths": {"eng": "Deaths", "gr": "Θάνατοι"},
+    }
 
-    df_deaths = (
-        df.drop(["cases", "hospitalizations", "cases_movavg"], axis=1)
-        .rename(columns={"deaths": "number"})
-        .assign(Category="Deaths")
-    )
-
-    df_hospitalizations = (
-        df.drop(["cases", "deaths", "cases_movavg"], axis=1)
-        .rename(columns={"hospitalizations": "number"})
-        .assign(Category="hospitalizations")
-    )
-
-    df_long = pd.concat([df_cases, df_cases_movavg, df_deaths, df_hospitalizations])
+    # For Deaths plot
+    titles_d = {
+        "eng": "Daily new deaths related to COVID-19",
+        "gr": "Θάνατοι σχετιζόμενοι με COVID-19",
+    }
+    categories_d = {
+        "deaths_daily": {"eng": "Deaths, daily", "gr": "Θάνατοι, ανά ημέρα"},
+        "deaths_movavg": {
+            "eng": "Deaths, 14-day average",
+            "gr": "Θάνατοι, <br>μεσ. όρος 7 ημερών",
+        },
+    }
 
     # Make plot
+    for lang in languages:
 
-    fig = px.line(
-        df_long,
-        x="date",
-        y="number",
-        color="Category",
-        custom_data=["Category"],
-        width=900,
-        height=600,
-        color_discrete_map={
-            "Cases": "#C5C5C5",
-            "Cases, 7-day average": "#1379FD",
-            "hospitalizations": "#FB202B",
-            "Deaths": "#FFAE00",  # "#48D7AC",#"#FFB220",
+        # Create long-form df
+        df_cases = (
+            df.drop(["deaths", "hospitalizations", "cases_movavg"], axis=1)
+            .rename(columns={"cases": "number"})
+            .assign(Category=categories["cases"][lang])
+        )
+
+        df_cases_movavg = (
+            df.drop(["deaths", "hospitalizations", "cases"], axis=1)
+            .rename(columns={"cases_movavg": "number"})
+            .assign(Category=categories["cases_movavg"][lang])
+        )
+
+        df_deaths = (
+            df.drop(["cases", "hospitalizations", "cases_movavg"], axis=1)
+            .rename(columns={"deaths": "number"})
+            .assign(Category=categories["deaths"][lang])
+        )
+
+        df_hospitalizations = (
+            df.drop(["cases", "deaths", "cases_movavg"], axis=1)
+            .rename(columns={"hospitalizations": "number"})
+            .assign(Category=categories["hospit"][lang])
+        )
+
+        df_long = pd.concat([df_cases, df_cases_movavg, df_deaths, df_hospitalizations])
+
+        # PLOTTING
+        print(f"Figure cases, hospitalizations etc in : {lang}")
+
+        fig = px.line(
+            df_long,
+            x="date",
+            y="number",
+            color="Category",
+            custom_data=["Category"],
+            width=900,
+            height=600,
+            color_discrete_map={
+                categories["cases"][lang]: "#C5C5C5",
+                categories["cases_movavg"][lang]: "#1379FD",
+                categories["hospit"][lang]: "#FB202B",
+                categories["deaths"][lang]: "#FFAE00",  # "#48D7AC",#"#FFB220",
+            },
+            labels={"number": columns["number"][lang], "date": "", "Category": ""},
+            title=titles[lang],
+        )
+
+        fig.update_layout(
+            font=dict(size=15, color="#2F2E31"),
+            plot_bgcolor="#FFEBD9",
+            paper_bgcolor="#FFEBD9",
+            yaxis=dict(
+                showgrid=True,
+                gridcolor="#FCD19C",
+                gridwidth=0.2,  # tried different values, same issue
+            ),
+            xaxis=dict(
+                showgrid=False,
+                # range=["2021-07-16","2022-01-06"],
+                title="",
+            ),
+            hovermode="x unified",
+        )
+
+        fig.update_traces(
+            hovertemplate="%{customdata[0]}: %{y:.0f} <extra></extra>",
+            line=dict(width=4),
+        )
+
+        # fig.show()
+
+        save_figure_many_forms(fig, f"cases_hosp_deaths_{lang}", 900, 600, 3.0)
+
+        ##############################################################
+        # Plot separately covid-induced deaths + 14-day moving average
+        ##############################################################
+
+        # Define names of parameters in plot in multiple languages
+
+        # Create death + death_moving_average
+        categ_to_replace = categories["deaths"][lang]
+        df_death = df_long.query("Category==@categ_to_replace").replace(
+            categories["deaths"][lang], categories_d["deaths_daily"][lang]
+        )
+        df_death_avg = df_death.copy()
+        df_death_avg["number"] = (
+            df_death_avg["number"].rolling(window=14, center=False).mean()
+        )
+        df_death_avg["Category"] = categories_d["deaths_movavg"][lang]
+        df_death_long = pd.concat([df_death, df_death_avg])
+
+        # PLOTTING
+        print(f"Figure deaths in : {lang}")
+
+        fig = px.line(
+            df_death_long,
+            x="date",
+            y="number",
+            color="Category",
+            custom_data=["Category"],
+            width=900,
+            height=600,
+            color_discrete_map={
+                categories_d["deaths_daily"][lang]: "#B9C4C5",
+                categories_d["deaths_movavg"][lang]: "#FFAE00",  # "#FFAE00"# "#FFB220"
+            },
+            labels={"number": columns["number"][lang], "date": "", "Category": ""},
+            title=titles_d[lang],
+        )
+
+        fig.update_layout(
+            font=dict(size=15, color="#2F2E31"),
+            plot_bgcolor="#FFEBD9",
+            paper_bgcolor="#FFEBD9",
+            yaxis=dict(
+                showgrid=True,
+                gridcolor="#FCD19C",
+                gridwidth=0.2,  # tried different values, same issue
+            ),
+            xaxis=dict(
+                showgrid=False,
+                # range=["2021-07-16","2022-01-06"],
+                title="",
+            ),
+            hovermode="x unified",
+        )
+
+        fig.update_traces(hovertemplate="%{customdata[0]}: %{y:.0f}<extra></extra>")
+
+        fig.update_traces(
+            line=dict(width=7), selector=dict(name=categories_d["deaths_movavg"][lang])
+        )
+
+        # fig.show()
+        save_figure_many_forms(fig, f"deaths_{lang}", 900, 600, 3.0)
+
+
+def hospitalizations_per_vaccination(df):
+    """Area figure with hospizalations time series per vaccination status"""
+
+    # Define names of parameters in plot in multiple languag
+    languages = ["eng", "gr"]
+    columns = {
+        "n_hospitalized": {"eng": "Hospitalizations", "gr": "Νοσηλείες"},
+        "Vaccination": {"eng": "", "gr": ""},
+    }
+    titles = {
+        "eng": "Daily new hospitalizations by vaccination status (since July 16, 2021)",
+        "gr": "Ημερήσιες νοσηλείες ανά εμβολιαστικό στάτους (από 6 Ιουλίου 2021)",
+    }
+    categories = {
+        "vacc": {"eng": "Vaccinated", "gr": "Εμβολιασμένοι"},
+        "unvacc": {
+            "eng": "Unvaccinated",
+            "gr": "Ανεμβολίαστοι",
         },
-        labels={"number": "Number", "date": "", "Category": ""},
-        title="Cases, hospitalizations, Deaths",
-    )
+    }
 
-    fig.update_layout(
-        font=dict(size=15, color="#2F2E31"),
-        plot_bgcolor="#FFEBD9",
-        paper_bgcolor="#FFEBD9",
-        yaxis=dict(
-            showgrid=True,
-            gridcolor="#FCD19C",
-            gridwidth=0.2,  # tried different values, same issue
-        ),
-        xaxis=dict(
-            showgrid=False,
-            # range=["2021-07-16","2022-01-06"],
-            title="",
-        ),
-        hovermode="x unified",
-    )
+    for lang in languages:
+        print(f"Figure hospitilazions per vaccination status in : {lang}")
 
-    fig.update_traces(
-        hovertemplate="%{customdata[0]}: %{y:.0f} <extra></extra>", line=dict(width=4)
-    )
+        # Turn df to long format
+        df_vacc = (
+            df.drop(
+                [
+                    "perc_hosp_unvaccinated",
+                    "n_hospitalized_unvaccinated",
+                ],
+                axis=1,
+            )
+            .rename(
+                columns={
+                    "perc_hosp_vaccinated": "perc_hospitalized",
+                    "n_hospitalized_vaccinated": "n_hospitalized",
+                }
+            )
+            .assign(Vaccination=categories["vacc"][lang])
+        )
 
-    # fig.show()
+        df_unvacc = (
+            df.drop(
+                [
+                    "perc_hosp_vaccinated",
+                    "n_hospitalized_vaccinated",
+                ],
+                axis=1,
+            )
+            .rename(
+                columns={
+                    "perc_hosp_unvaccinated": "perc_hospitalized",
+                    "n_hospitalized_unvaccinated": "n_hospitalized",
+                }
+            )
+            .assign(Vaccination=categories["unvacc"][lang])
+        )
 
-    save_figure_many_forms(fig, "cases_hosp_deaths", 900, 600, 3.0)
+        df_h1 = pd.concat([df_vacc, df_unvacc])
+        df_h2 = df_h1.query("date >= '2021-07-16'")
+        # Make plot
+        fig = px.area(
+            df_h2,
+            x="date",
+            y="n_hospitalized",
+            color="Vaccination",
+            custom_data=["Vaccination", "perc_hospitalized"],
+            width=900,
+            height=600,
+            color_discrete_map={
+                categories["unvacc"][lang]: "#D22727",
+                categories["vacc"][lang]: "#316F9A",
+            },
+            labels={
+                "n_hospitalized": columns["n_hospitalized"][lang],
+                "Vaccination": columns["Vaccination"][lang],
+            },
+            title=titles[lang],
+        )
 
-    ##############################################################
-    # Plot separately covid-induced deaths + 14-day moving average
-    ##############################################################
+        fig.update_layout(
+            hoverlabel_font=dict(color="#2F2E31"),  # =white
+            font=dict(size=15, color="#2F2E31"),
+            legend={"traceorder": "reversed"},
+            plot_bgcolor="#FFEBD9",
+            paper_bgcolor="#FFEBD9",
+            yaxis=dict(
+                showgrid=True,
+                gridcolor="#FCD19C",
+                gridwidth=0.2,  # tried different values, same issue
+            ),
+            xaxis=dict(
+                showgrid=False,
+                # range=["2021-07-16", df_h2["date"].iloc[-1].date()],
+                title="",
+            ),
+            hovermode="x unified",
+        )
 
-    # Create death + death_moving_average
-    df_death = df_long.query("Category=='Deaths'")
-    df_death_avg = df_death.copy()
-    df_death_avg["number"] = (
-        df_death_avg["number"].rolling(window=14, center=False).mean()
-    )
-    df_death_avg["Category"] = "Deaths, 14-day average"
+        fig.update_traces(
+            hovertemplate="<b>%{customdata[0]}</b>: %{y:.0f} ( %{customdata[1]:.1f}% )<extra></extra>"  # + " <br> %{x}",
+        )
 
-    df_death_long = pd.concat([df_death, df_death_avg])
+        # fig.show()
 
-    fig = px.line(
-        df_death_long,
-        x="date",
-        y="number",
-        color="Category",
-        custom_data=["Category"],
-        width=900,
-        height=600,
-        color_discrete_map={
-            "Deaths": "#B9C4C5",
-            "Deaths, 14-day average": "#FFAE00",  # "#FFAE00"# "#FFB220"
-        },
-        labels={"number": "Number", "date": "", "Category": ""},
-        title="Deaths",
-    )
-
-    fig.update_layout(
-        font=dict(size=15, color="#2F2E31"),
-        plot_bgcolor="#FFEBD9",
-        paper_bgcolor="#FFEBD9",
-        yaxis=dict(
-            showgrid=True,
-            gridcolor="#FCD19C",
-            gridwidth=0.2,  # tried different values, same issue
-        ),
-        xaxis=dict(
-            showgrid=False,
-            # range=["2021-07-16","2022-01-06"],
-            title="",
-        ),
-        hovermode="x unified",
-    )
-
-    fig.update_traces(hovertemplate="%{customdata[0]}: %{y:.0f}<extra></extra>")
-
-    fig.update_traces(line=dict(width=7), selector=dict(name="Deaths, 14-day average"))
-
-    # fig.show()
-    save_figure_many_forms(fig, "deaths", 900, 600, 3.0)
+        # Save figure
+        save_figure_many_forms(
+            fig, f"hospitalizations_per_vaccination_{lang}", 900, 600, 3.0
+        )
 
 
 def ascending_weeks_from_one(week_list):
@@ -463,6 +448,7 @@ def hospitalizations_per_vacc_per_100_00(df, dfv):
     # OPEN QUESTION: Does the "DoseAdditional1" for Janssen refer to 3rd dose or is it an another term for second one?
     # For now I am working assuming the second case.
     dfv2["Boosted"] = dfv2.apply(
+        # lambda x: x["SecondDose"]
         lambda x: x["SecondDose"] + x["DoseAdditional1"]
         if x["Vaccine"] == "JANSS"
         else x["DoseAdditional1"],
@@ -526,121 +512,290 @@ def hospitalizations_per_vacc_per_100_00(df, dfv):
         dfvh["Hosp_in_100_000_unvac"] / dfvh["Hosp_in_100_000_vac"]
     )
 
-    # Turn df to long format
-    df_vacc = (
-        dfvh.drop(["Hosp_in_100_000_unvac"], axis=1)
-        .rename(columns={"Hosp_in_100_000_vac": "n_hospitalized"})
-        .assign(Vaccination="Vaccinated")
-    )
-
-    df_unvacc = (
-        dfvh.drop(["Hosp_in_100_000_vac"], axis=1)
-        .rename(columns={"Hosp_in_100_000_unvac": "n_hospitalized"})
-        .assign(Vaccination="Unvaccinated")
-    )
-
-    dfvhl = pd.concat([df_vacc, df_unvacc])
-
-    # Make plot
-
-    fig = px.area(
-        dfvhl.query("n_hospitalized == n_hospitalized"),  # get rid of nans
-        x="midweek",
-        y="n_hospitalized",
-        color="Vaccination",
-        custom_data=["Vaccination", "ratio_hosp_unvacc_vacc"],
-        width=900,
-        height=600,
-        color_discrete_map={
-            "Unvaccinated": "#D22727",
-            "Vaccinated": "#316F9A",
+    # Define names of parameters in plot in multiple languag
+    languages = ["eng", "gr"]
+    columns = {
+        "n_hospitalized": {"eng": "Hospitalizations", "gr": "Νοσηλείες"},
+        "ratio_hosp_unvacc_vacc": {
+            "eng": "Ratio unvaccinated : vaccinated",
+            "gr": "Αναλογία ανεμβολίαστων : εμβολιασμένων",
         },
-        labels={"n_hospitalized": "Hospitalizations per 100 000 ", "Vaccination": ""},
-        title="Hospitalizations by vaccination status per 100 000 (vacc & unvacc) people <br>(since July 16, 2021)",
-    )
+    }
+    titles_f1 = {
+        "eng": "Weekly average of hospitalizations by vaccination status per 100 000 (vacc & unvacc) <br> people (since July 16, 2021)",
+        "gr": "Εβδομαδιαίος μεσ. όρος νοσηλειών ανά πληθυσμό 100 000 ανεμβολίαστων και <br> 100 000 εμβολιασμένων (από 6 Ιουλίου 2021)",
+    }
 
-    fig.update_layout(
-        hoverlabel_font=dict(color="#2F2E31"),  # =white
-        font=dict(size=15, color="#2F2E31"),
-        legend={"traceorder": "reversed"},
-        plot_bgcolor="#FFEBD9",
-        paper_bgcolor="#FFEBD9",
-        yaxis=dict(
-            showgrid=True,
-            gridcolor="#FCD19C",
-            gridwidth=0.2,  # tried different values, same issue
-        ),
-        xaxis=dict(
-            showgrid=False,
-            # range=["2021-07-16", dfvhl["midweek"].iloc[-1].date()],
-            title="",
-        ),
-        hovermode="x unified",
-    )
+    titles_f2 = {
+        "eng": "How many times more likely is to be hospitalized if unvaccinated vs vaccinated \
+                <br><sup>(Ratio unvaccinated : vaccinated for weekly average of hospitalizations per 100 000 people)</sup>",
+        "gr": "Πόσο πιο πιθανό είναι να νοσηλευτεί ο ανεμβολιάστος σε σύγκριση με τον εμβολιασμένο;\
+                <br><sup>(Αναλογία ανεμβολίαστων : εμβολιασμένων στον εβδομαδιαίο μ. όρο νοσηλειών άνα 100 000 άτομα)</sup>",
+    }
 
-    fig.update_traces(
-        hovertemplate="<b>%{customdata[1]:.1f} times</b> more likely to <br>be hospitalized if unvacc."
-        + "<br><b>%{customdata[0]}</b>: %{y:.0f} <extra></extra>",
-        selector=dict(name="Unvaccinated"),
-    )
+    categories = {
+        "vacc": {"eng": "Vaccinated", "gr": "Εμβολιασμένοι"},
+        "unvacc": {
+            "eng": "Unvaccinated",
+            "gr": "Ανεμβολίαστοι",
+        },
+    }
+    traces_hovertemplate_f1 = {
+        "eng": "<b>%{customdata[1]:.1f} times</b> more likely to <br>be hospitalized if unvaccanited",
+        "gr": "<b>%{customdata[1]:.1f} φορές</b> πιθανότερη <br>νοσηλεία για ανεμβολίαστους",
+    }
 
-    fig.update_traces(
-        hovertemplate="<b>%{customdata[0]}</b>: %{y:.0f} <extra></extra>",
-        selector=dict(name="Vaccinated"),
-    )
+    traces_hovertemplate_f2 = {
+        "eng": "%{y:.0f} times more likely<extra></extra>",
+        "gr": "%{y:.0f} φορές πιο πιθανό<extra></extra>",
+    }
 
-    # fig.update_layout(legend=dict(
-    #     orientation="h",
-    #     yanchor="bottom",
-    #     y=0.98,
-    #     xanchor="right",
-    #     x=0.9
-    # ))
+    for lang in languages:
+        print(f"Hospitalizations per 100_000 in : {lang}")
 
-    # fig.show()
+        # Turn df to long format
+        df_vacc = (
+            dfvh.drop(["Hosp_in_100_000_unvac"], axis=1)
+            .rename(columns={"Hosp_in_100_000_vac": "n_hospitalized"})
+            .assign(Vaccination=categories["vacc"][lang])
+        )
 
-    save_figure_many_forms(fig, "hospitalizations_per_vacc_per_100_000", 900, 600, 3.0)
+        df_unvacc = (
+            dfvh.drop(["Hosp_in_100_000_vac"], axis=1)
+            .rename(columns={"Hosp_in_100_000_unvac": "n_hospitalized"})
+            .assign(Vaccination=categories["unvacc"][lang])
+        )
 
-    #################################################################################
-    # Plot ratio unvacc:vacc for hospitalizations per 100_000 (vacc & unvacc) people
-    ##################################################################################
+        dfvhl = pd.concat([df_vacc, df_unvacc])
 
-    # get rid of nans & sort
-    df_tmp = dfvhl.query("n_hospitalized == n_hospitalized").sort_values(by="midweek")
+        # Make plot
 
-    fig = px.line(
-        df_tmp,
-        x="midweek",
-        y="ratio_hosp_unvacc_vacc",
-        width=800,
-        height=500,
-        labels={"ratio_hosp_unvacc_vacc": "Ratio unvaccinated : vaccinated"},
-        title="How many times more likely is to be hospitalized if unvaccinated compared to vaccinated",
-    )
+        fig = px.area(
+            dfvhl.query("n_hospitalized == n_hospitalized"),  # get rid of nans
+            x="midweek",
+            y="n_hospitalized",
+            color="Vaccination",
+            custom_data=["Vaccination", "ratio_hosp_unvacc_vacc"],
+            width=900,
+            height=600,
+            color_discrete_map={
+                categories["unvacc"][lang]: "#D22727",
+                categories["vacc"][lang]: "#316F9A",
+            },
+            labels={
+                "n_hospitalized": columns["n_hospitalized"][lang],
+                "Vaccination": "",
+            },
+            title=titles_f1[lang],
+        )
 
-    fig.update_layout(
-        font=dict(size=15, color="#2F2E31"),
-        plot_bgcolor="#FFEBD9",
-        paper_bgcolor="#FFEBD9",
-        yaxis=dict(
-            showgrid=True,
-            gridcolor="#FCD19C",
-            gridwidth=0.2,  # tried different values, same issue
-        ),
-        xaxis=dict(showgrid=False, title=""),
-    )
+        fig.update_layout(
+            hoverlabel_font=dict(color="#2F2E31"),  # =white
+            font=dict(size=15, color="#2F2E31"),
+            legend={"traceorder": "reversed"},
+            plot_bgcolor="#FFEBD9",
+            paper_bgcolor="#FFEBD9",
+            yaxis=dict(
+                showgrid=True,
+                gridcolor="#FCD19C",
+                gridwidth=0.2,  # tried different values, same issue
+            ),
+            xaxis=dict(
+                showgrid=False,
+                # range=["2021-07-16", dfvhl["midweek"].iloc[-1].date()],
+                title="",
+            ),
+            hovermode="x unified",
+        )
 
-    fig.update_traces(
-        hovertemplate="%{y:.0f} times more likely<extra></extra>",
-        line=dict(width=4, color="#F53E94"),
-        # selector=dict(name="Deaths, 14-day average")
-    )
+        fig.update_traces(
+            hovertemplate=traces_hovertemplate_f1[lang]
+            + "<br><b>%{customdata[0]}</b>: %{y:.0f} <extra></extra>",
+            selector=dict(
+                name=categories["unvacc"][lang],
+            ),
+        )
 
-    # fig.show()
+        fig.update_traces(
+            hovertemplate="<b>%{customdata[0]}</b>: %{y:.0f} <extra></extra>",
+            selector=dict(name=categories["vacc"][lang]),
+        )
 
-    save_figure_many_forms(
-        fig, "hospitalizations_per_vacc_per_100_000_ratio", 900, 600, 3.0
-    )
+        # fig.update_layout(legend=dict(
+        #     orientation="h",
+        #     yanchor="bottom",
+        #     y=0.98,
+        #     xanchor="right",
+        #     x=0.9
+        # ))
+
+        # fig.show()
+
+        save_figure_many_forms(
+            fig, f"hospitalizations_per_vacc_per_100_000_{lang}", 900, 600, 3.0
+        )
+
+        #################################################################################
+        # Plot ratio unvacc:vacc for hospitalizations per 100_000 (vacc & unvacc) people
+        ##################################################################################
+
+        # get rid of nans & sort
+        df_tmp = dfvhl.query("n_hospitalized == n_hospitalized").sort_values(
+            by="midweek"
+        )
+
+        fig = px.line(
+            df_tmp,
+            x="midweek",
+            y="ratio_hosp_unvacc_vacc",
+            width=900,
+            height=600,
+            labels={"ratio_hosp_unvacc_vacc": columns["ratio_hosp_unvacc_vacc"][lang]},
+            title=titles_f2[lang],
+        )
+
+        fig.update_layout(
+            font=dict(size=15, color="#2F2E31"),
+            plot_bgcolor="#FFEBD9",
+            paper_bgcolor="#FFEBD9",
+            yaxis=dict(
+                showgrid=True,
+                gridcolor="#FCD19C",
+                gridwidth=0.2,  # tried different values, same issue
+            ),
+            xaxis=dict(showgrid=False, title=""),
+            hovermode="x unified",
+        )
+
+        fig.update_traces(
+            hovertemplate=traces_hovertemplate_f2[lang],
+            line=dict(width=4, color="#F53E94"),
+            # selector=dict(name="Deaths, 14-day average")
+        )
+
+        # fig.show()
+
+        save_figure_many_forms(
+            fig, f"hospitalizations_per_vacc_per_100_000_ratio_{lang}", 900, 600, 3.0
+        )
+
+
+def hospitalizations_by_severity(df):
+    """Plotting hospitalisations after categorizing them in ICU, ICU intubated and not ICU"""
+
+    # Define names of parameters in plot in multiple languag
+    languages = ["eng", "gr"]
+    columns = {"hospit": {"eng": "Hospitalizations", "gr": "Νοσηλείες"}}
+    titles = {
+        "eng": "Daily new hospitalizations by severity",
+        "gr": "Ημερήσιες νοσηλείες ανά σοβαρότητα",
+    }
+    categories = {
+        "icu_intub": {"eng": "ICU, intubated", "gr": "Εντατική κ διασωλήνωση"},
+        "icu_nointub": {
+            "eng": "ICU, not intubated",
+            "gr": "Εντατική χωρίς διασωλήνωση",
+        },
+        "no_icu": {"eng": "not in ICU", "gr": "Όχι στην εντατική"},
+        "severe": {"eng": "Severe", "gr": "Σοβαρά"},
+    }
+
+    for lang in languages:
+
+        print(f"Figure hospitalizations by severity in: {lang}")
+
+        # Add non-icu cases
+        df["no_icu"] = df["Hospitalised Cases"] - df["Incubated Cases"]
+        df["icu_nointub"] = df["Cases In ICUs"] - df["Incubated Cases"]
+        df = df.query("icu_nointub == icu_nointub")  # remove entries with nan
+
+        # Create long-form df
+        df_icu_intub = (
+            df.drop(["no_icu", "icu_nointub"], axis=1)
+            .rename(columns={"Incubated Cases": "Patients"})
+            .assign(Category=categories["icu_intub"][lang])
+        )
+
+        df_icu_no_intub = (
+            df.drop(["no_icu", "Incubated Cases"], axis=1)
+            .rename(columns={"icu_nointub": "Patients"})
+            .assign(Category=categories["icu_nointub"][lang])
+        )
+
+        df_no_icu = (
+            df.drop(["icu_nointub", "Incubated Cases"], axis=1)
+            .rename(columns={"no_icu": "Patients"})
+            .assign(Category=categories["no_icu"][lang])
+        )
+
+        df_icu_long = pd.concat([df_icu_intub, df_icu_no_intub, df_no_icu])
+
+        # Plot using graph objects (allows more flexibility)
+        categories_only_str = [
+            categories["icu_intub"][lang],
+            categories["icu_nointub"][lang],
+            categories["no_icu"][lang],
+        ]
+        color_map = {
+            categories["icu_intub"][lang]: "#8E007D",
+            categories["icu_nointub"][lang]: "#C800AF",
+            categories["no_icu"][lang]: "#008564",
+        }
+
+        fig = go.Figure()
+        for category in categories_only_str:
+
+            df_tmp = df_icu_long.query("Category == @category")
+            fig.add_trace(
+                go.Scatter(
+                    x=df_tmp["date"],
+                    y=df_tmp["Patients"],
+                    fill="tonexty",
+                    name=category,
+                    stackgroup="one",  # to stack them
+                    line=dict(color=color_map[category]),
+                )
+            )
+
+        fig.add_trace(
+            go.Scatter(
+                x=df_icu_long["date"],
+                y=df_icu_long["Severe Cases"],
+                mode="lines",
+                name=categories["severe"][lang],
+                line=dict(color="#FFBD8A", width=3),
+            )  # , dash="dash", "dot", FFBD8A, "#FFA45F", #75E1FF"
+        )
+
+        fig.update_layout(
+            title=dict(text=titles[lang]),
+            font=dict(size=15, color="#2F2E31"),
+            width=900,
+            height=600,
+            legend={"traceorder": "reversed"},
+            plot_bgcolor="#FFEBD9",
+            paper_bgcolor="#FFEBD9",
+            yaxis=dict(
+                title=dict(text=columns["hospit"][lang]),
+                showgrid=True,
+                gridcolor="#FCD19C",
+                gridwidth=0.2,  # tried different values, same issue
+            ),
+            xaxis=dict(
+                showgrid=False,
+                # range=["2021-07-16","2022-01-06"],
+                title="",
+            ),
+            hovermode="x unified",
+            hoverlabel_font=dict(color="#2F2E31"),
+        )
+
+        # fig.show()
+
+        # Save figure
+        save_figure_many_forms(
+            fig, f"hospitalizations_per_severity_{lang}", 900, 600, 3.0
+        )
 
 
 def group_stats_targetgroup(df, target_str):
@@ -762,51 +917,97 @@ def vaccinations_by_age(dfv):
 
     # Actual Plot
 
-    fig = px.bar(
-        df_grp,
-        x="target_group",
-        y="%_diff_prev_categ",
-        color="vacc_category",
-        color_discrete_map={
-            "Boosted": "#0C456D",
-            "Fully vaccinated": "#316F9A",
-            "At least one dose": "#79A9CB",
-            "Unvaccinated": "#D22727",
+    last_date = dfv["midweek"].iloc[-1] + timedelta(3)
+    last_date = last_date.strftime("%d %B, %Y")
+
+    # Define names of parameters in plot in multiple languages
+    languages = ["eng", "gr"]
+    columns = {
+        "%_diff_prev_categ": {"eng": "Percentage", "gr": "Ποσοστό"},
+        "target_group": {"eng": "Age group", "gr": "Ηλικιακή ομάδα"},
+    }
+
+    titles = {
+        "eng": f"Cyprus immunity wall (until {last_date})",
+        "gr": f"Εμβολιαστική κάλυψη στην Κύπρο (μέχρι {last_date})",
+    }
+
+    categories = {
+        "Boosted": {"eng": "Boosted", "gr": "Ενισχυτική δόση"},
+        "Fully vaccinated": {
+            "eng": "Fully vaccinated",
+            "gr": "Πλήρως εμβολιασμένοι",
         },
-        labels={
-            "%_diff_prev_categ": "Percentage",
-            "vacc_category": "Category",
-            "target_group": "Age group",
-        },
-        custom_data=["vacc_category", "%_vaccinations"],
-        width=900,
-        height=600,
-        title="Cyprus immunity wall",
-    )
-    # hover_data={"%_vaccinations" : ":.0f",
-    #           "%_diff_prev_categ" : False,
-    #           "n_stack_bar": False},
+        "At least one dose": {"eng": "At least one dose", "gr": "Tουλ. μία δόση"},
+        "Unvaccinated": {"eng": "Unvaccinated", "gr": "Ανεμβολίαστοι"},
+    }
 
-    fig.update_traces(
-        hovertemplate="<b>%{customdata[0]}</b> %{customdata[1]:.0f}%<extra></extra>",
-        # width=[0.6]*len(target_groups)
-    )
+    age_groups = {"all_ages": {"eng": "<b>All<br>ages</b>", "gr": "<b>Συνολικά</b>"}}
 
-    fig.update_layout(
-        font=dict(size=15, color="#2F2E31"),
-        xaxis=dict(
-            tickmode="array",
-            tickvals=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
-            ticktext=["<b>All<br>ages</b>", "<b>18+</b>"]
-            + list(df_grp["target_group"].unique()[2:]),
-            range=[-1, 10],
-        ),
-        legend={"traceorder": "reversed"},
-        plot_bgcolor="#FFEBD9",
-        paper_bgcolor="#FFEBD9",
-        hoverlabel_font=dict(color="white"),
-        bargap=0.25,
-    )
-    # fig.show()
+    for lang in languages:
+        print(f"Figure with vaccination coverage in {lang}")
 
-    save_figure_many_forms(fig, "vaccinations_by_age", 900, 600, 3.0)
+        # replace categories with name in plotted langauge
+        df_grp1 = df_grp.copy()
+        df_grp1 = df_grp1.replace(
+            {
+                categories["Boosted"]["eng"]: categories["Boosted"][lang],
+                categories["Fully vaccinated"]["eng"]: categories["Fully vaccinated"][
+                    lang
+                ],
+                categories["At least one dose"]["eng"]: categories["At least one dose"][
+                    lang
+                ],
+                categories["Unvaccinated"]["eng"]: categories["Unvaccinated"][lang],
+            }
+        )
+
+        # make plot
+        fig = px.bar(
+            df_grp1,
+            x="target_group",
+            y="%_diff_prev_categ",
+            color="vacc_category",
+            color_discrete_map={
+                categories["Boosted"][lang]: "#0C456D",
+                categories["Fully vaccinated"][lang]: "#316F9A",
+                categories["At least one dose"][lang]: "#79A9CB",
+                categories["Unvaccinated"][lang]: "#D22727",
+            },
+            labels={
+                "%_diff_prev_categ": columns["%_diff_prev_categ"][lang],
+                "vacc_category": "",
+                "target_group": columns["target_group"][lang],
+            },
+            custom_data=["vacc_category", "%_vaccinations"],
+            width=900,
+            height=600,
+            title=titles[lang],
+        )
+        # hover_data={"%_vaccinations" : ":.0f",
+        #           "%_diff_prev_categ" : False,
+        #           "n_stack_bar": False},
+
+        fig.update_traces(
+            hovertemplate="<b>%{customdata[0]}</b> %{customdata[1]:.0f}%<extra></extra>",
+            # width=[0.6]*len(target_groups)
+        )
+
+        fig.update_layout(
+            font=dict(size=15, color="#2F2E31"),
+            xaxis=dict(
+                tickmode="array",
+                tickvals=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
+                ticktext=[age_groups["all_ages"][lang], "<b>18+</b>"]
+                + list(df_grp["target_group"].unique()[2:]),
+                range=[-1, 10],
+            ),
+            legend={"traceorder": "reversed"},
+            plot_bgcolor="#FFEBD9",
+            paper_bgcolor="#FFEBD9",
+            hoverlabel_font=dict(color="white"),
+            bargap=0.25,
+        )
+        # fig.show()
+
+        save_figure_many_forms(fig, f"vaccinations_by_age_{lang}", 900, 600, 3.0)
