@@ -1,5 +1,6 @@
 # Website with covid-19 & vaccination data for Cyprus
 The website in English: https://geomich.github.io/covid_cyprus/covid_cy_report.html
+
 The website in Greek: https://geomich.github.io/covid_cyprus/covid_cy_report_gr.html
 
 Here I am using data from the Cyprus Ministry of Health to create some interactive plots that allow a quick & comprehensive overview of the status of the COVID-19 pandemic in Cyprus.
