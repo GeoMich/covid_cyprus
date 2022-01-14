@@ -147,6 +147,23 @@ def get_info_from_reports():
     df_hosp_upd.to_csv(PATH_INFO_REPORTS)
 
 
+def get_url_with_sum_stats():
+    """Check for latest url in data.gov.cy with summary daily stats"""
+    base_url = "https://www.data.gov.cy/dataset/%CE%B7%CE%BC%CE%B5%CF%81%CE%AE%CF%83%CE%B9%CE%B1-%CF%83%CF%84%CE%B1%CF%84%CE%B9%CF%83%CF%84%CE%B9%CE%BA%CE%AC-%CE%B4%CE%B9%CE%B1%CF%83%CF%80%CE%BF%CF%81%CE%AC%CF%82-%CF%84%CE%B7%CF%82-%CE%BD%CF%8C%CF%83%CE%BF%CF%85-covid-19-%CF%83%CF%84%CE%B7%CE%BD-%CE%BA%CF%8D%CF%80%CF%81%CE%BF"
+    list_of_links = ut.find_files_from_url(base_url)
+    substrings_in_path = [
+        "https://www.data.gov.cy/sites/default/files/CY%20Covid19%20Open%20Data%20-%20Extended%20-%20new"
+    ]
+    not_in_path = ["http://oneclick.cartodb.com"]
+    url_sum_stats = [
+        link
+        for link in list_of_links
+        if any(substring in link for substring in substrings_in_path)
+        & any(substring not in link for substring in not_in_path)
+    ]
+    return url_sum_stats[0]
+
+
 def download_sum_stats():
     """Download the csv from data.gov.cy which includes daily covid stats from beginning of pandemic
 
@@ -155,9 +172,9 @@ def download_sum_stats():
     """
 
     # Data scraping
-    URL_DATA = "https://www.data.gov.cy/sites/default/files/CY%20Covid19%20Open%20Data%20-%20Extended%20-%20new_246.csv"
+    url_data = get_url_with_sum_stats()
     print("Downloading dataset...")
-    df = pd.read_csv(URL_DATA)
+    df = pd.read_csv(url_data)
     # Format DF
     df1 = df.copy()
     df1 = df1.replace(":", np.nan)
@@ -171,11 +188,32 @@ def download_sum_stats():
     df1.to_csv("../data/dataset_sum_daily_stats.csv")
 
 
+def get_url_with_vacc_data():
+    """Check for latest url in data.gov.cy with weekly vacciation data"""
+
+    base_url = "https://www.data.gov.cy/dataset/%CE%B5%CE%B2%CE%B4%CE%BF%CE%BC%CE%B1%CE%B4%CE%B9%CE%B1%CE%AF%CE%B1-%CF%83%CF%84%CE%B1%CF%84%CE%B9%CF%83%CF%84%CE%B9%CE%BA%CE%AC-%CE%B5%CE%BC%CE%B2%CE%BF%CE%BB%CE%B9%CE%B1%CF%83%CE%BC%CF%8E%CE%BD-%CE%BA%CE%B1%CF%84%CE%AC-%CF%84%CE%B7%CF%82-%CE%BD%CF%8C%CF%83%CE%BF%CF%85-covid-19-%CE%B1%CE%BD%CE%AC-%CE%BF%CE%BC%CE%AC%CE%B4%CE%B1-%CF%83%CF%84%CF%8C%CF%87%CE%BF"
+    list_of_links = ut.find_files_from_url(base_url)
+    substrings_in_path = [
+        "https://www.data.gov.cy/sites/default/files/CY%20Vaccination%20Data%20by%20Target%20Group"
+    ]
+    not_in_path = ["http://oneclick.cartodb.com"]
+    url_vacc_stats = [
+        link
+        for link in list_of_links
+        if any(substring in link for substring in substrings_in_path)
+        & any(substring not in link for substring in not_in_path)
+    ]
+    return url_vacc_stats[0]
+
+
 def download_vaccination_data():
     """Download dataset with vaccination per week, target group, vaccine, dose etc"""
+
+    # find the correct url
+
     total_population = 888_005
     print("Downloading vaccination dataset...")
-    url_vaccination = "https://www.data.gov.cy/sites/default/files/CY%20Vaccination%20Data%20by%20Target%20Group_19.csv"
+    url_vaccination = get_url_with_vacc_data()
     df_v1 = pd.read_csv(url_vaccination)
     df_v1["Population"] = total_population
     last_week = df_v1["YearWeekISO"].iloc[-1]
