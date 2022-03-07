@@ -3,7 +3,7 @@ The website in English: https://geomich.github.io/covid_cyprus/covid_cy_report.h
 
 The website in Greek: https://geomich.github.io/covid_cyprus/covid_cy_report_gr.html
 
-Same data displayed in a Tableau Dashboard: https://public.tableau.com/app/profile/georgios.michail/viz/CovidCyprusStatistics/Dashboard1 
+Same data displayed in a Tableau Dashboard: https://public.tableau.com/app/profile/georgios.michail/viz/Covid-19CyprusStatistics/Dashboard1
 
 Here I am using data from the Cyprus Ministry of Health to create some interactive plots that allow a quick & comprehensive overview of the status of the COVID-19 pandemic in Cyprus.
 
