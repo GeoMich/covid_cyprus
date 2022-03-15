@@ -125,6 +125,11 @@ def get_info_from_reports():
         for path in paths_reports
         if any(missing_date in path for missing_date in missing_dates)
     ]
+    # # Exclude info from falsy PDF report for the 2022_01_18
+    # paths_reports_missing = [
+    #     path for path in paths_reports_missing if "2022_01_18" not in path
+    # ]
+
     # print(paths_reports_missing)
     df_hosp_unv_extra = ut.extract_info_from_reports(paths_reports_missing)
     # print(df_hosp_unv_extra)
@@ -138,7 +143,8 @@ def get_info_from_reports():
 
     # Append missing info from PIO if not already in df
     df_hosp_upd = ut.df_append_missing_from_PIO(df_hosp_upd)
-    # print(df_hosp_upd)
+    df_hosp_upd = df_hosp_upd.sort_values(by="date")
+    # print(df_hosp_upd["date"].iloc[-1])
 
     # Save as csv
     last_date = df_hosp_upd["date"].iloc[-1].replace("-", "_")

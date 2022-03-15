@@ -36,6 +36,16 @@ def add_missing_cases_deaths_to_group_data(df1, df2):
         print("No new additional cases & death info..")
         df_extra = df1
 
+    # Apply corrections to extended stats
+    # TODO: Apply this corrections in a different function
+    # Corrections 1: In summary database from data.gov.cy deaths for 2022-01-18 are 3 but according to the pdf-report is 5
+    # -> use 5 (they initially announced 3, then updated to 5)
+    # print(df_extra.query("date == '2022-01-18'"))
+    df_extra.loc[df_extra["date"] == "2022-01-18", "daily deaths"] = 5.0
+    # print(df_extra.query("date == '2022-01-18'"))
+    # Corrections 2: In summary database from data.gov.cy hospitalizations for 2022-01-23 are 329 but according to the pdf-report is 238
+    df_extra.loc[df_extra["date"] == "2022-01-23", "Hospitalised Cases"] = 238
+
     return df_extra
 
 

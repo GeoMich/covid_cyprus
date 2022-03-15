@@ -3,6 +3,7 @@ from datetime import datetime
 import urllib
 import requests
 import pandas as pd
+import string
 
 import io
 from pdfminer.pdfinterp import PDFResourceManager
@@ -27,6 +28,7 @@ def find_files_from_url(url):
 def isolate_relevant_files(list_of_links):
     substrings_in_path = [
         "Ανακοίνωση του Υπουργείου Υγείας σχετικά με νέα περιστατικά της νόσου COVID-19",
+        "Ανακοίνωση του Υπουργείου Υγείας για νέα περιστατικά της νόσου COVID-19",
         "Ανακοίνωση για επιβεβαίωση κρουσμάτων κορωνοϊού",
         "anakoinosikrousmata",
     ]
@@ -77,16 +79,23 @@ def replace_month_with_number(date_string):
 
 
 def extract_datetime(link):
-    if (
-        "Ανακοίνωση του Υπουργείου Υγείας σχετικά με νέα περιστατικά της νόσου COVID-19"
-        in link
-    ):
-        date_str_gr = link.split("– ")[1].split(".")[0]
-        date1 = replace_month_with_number(date_str_gr)  # defined above
-        dt_report = datetime.strptime(date1, "%d %m %Y")
-    else:
+
+    try:
+        # This uses datetime given after "upload/" in link
         date1 = link.split("uploads/")[1].split("--")[0]
         dt_report = datetime.strptime(date1, "%d%m%Y")  # .date()
+    except ValueError:
+        # this uses the date given before .pdf in case the above info is not provided
+        date_str_gr = link.split("COVID-19")[1].split(".")[0]
+        puctuation_plus = string.punctuation + "–"  # add dash
+        date_str_gr = date_str_gr.translate(
+            str.maketrans("", "", puctuation_plus)
+        )  # strip punctuation (, or – usually)
+        date1 = replace_month_with_number(date_str_gr)
+        date1 = date1.lstrip()  # remove empty spaces at start
+        if not any([substring in date1 for substring in ["2021", "2022"]]):
+            date1 = date1 + " 2022"
+        dt_report = datetime.strptime(date1, "%d %m %Y")
 
     return dt_report
 
@@ -133,6 +142,10 @@ map_numbers = {
     "Εφτά": "7",
     "Οχτώ": "8",
     "Εννιά": "9",
+    "Δέκα": "10",
+    "Έντεκα": "11",
+    "Δώδεκα": "12",
+    "Δεκατρία": "13",
 }
 
 
@@ -155,12 +168,17 @@ def number_key_in_string(date_string):
         number if number in date_string else None for number in map_numbers.keys()
     ]  # None except on matching month
     number_key = list(filter(None, numbers_list))  # remove None
+
     return number_key[0]
 
 
 def extract_info_text(text):
     m1 = re.search("Ποσοστό (\s*.+?)%", text)  # "\s*" ignores white space
     perc_unv = m1.group(1) if m1 else None
+    if not m1.group(1).strip().isnumeric():
+        m1a = re.search("στορικό εμβολιασμού(.+?)%", text)
+        perc_str = re.findall(r"[-+]?(?:\d*\.\d+|\d+)", m1a.group(1).replace(",", "."))
+        perc_unv = perc_str[0]
 
     m2 = re.search("σήμερα, (.+?):", text)
     date_pdf = m2.group(1) if m2 else None
@@ -172,17 +190,39 @@ def extract_info_text(text):
     # case_num = m4.group(1) if m4 else None
 
     m4 = re.search("test\.(.+?) ποσοστό", text)
-    case_num = m4.group(1) if m4 else None
+    m4a = re.search("Εντοπίστηκαν(\s*.+?\s*)νέα", text)
+    case_num = m4.group(1) if m4 else m4a.group(1) if m4a else None
     if case_num is not None:
-        case_num = case_num.split("-")[1].strip()
+        case_num = "".join(e for e in case_num if e.isalnum())  # keep only numbers
+        # case_num = case_num.split("-")[1].strip()
 
     m5 = re.search("- (.+?) άτομ", text)
-    death_num = m5.group(1) if m5 else "0"
+    m5a = re.search("νακοινώθηκαν (.*) θάνατ", text)
+    m5b = re.search("νακοινώθηκε (.*) θάνατ", text)
+    m5c = re.search("- (.+?) θάνατ", text)
+    death_num = (
+        m5.group(1)
+        if m5
+        else m5a.group(1)
+        if m5a
+        else m5b.group(1)
+        if m5b
+        else m5c.group(1)
+        if m5c
+        else "0"
+    )
+
+    if any(
+        substring in death_num
+        for substring in ["Δεν  καταγράφηκαν", "Δεν ανακοινώθηκαν"]
+    ):
+        death_num = "0"
+
     if death_num != "0":
-        if len(death_num.strip()) > 1:
+        if not death_num.strip().isnumeric():
             word_key = number_key_in_string(death_num)
             death_num = map_numbers[word_key]
-    # print(death_num)
+    # print(f"Deaths : {death_num}")
 
     info = [perc_unv, date_pdf, hosp_num, case_num, death_num]
 
@@ -201,6 +241,7 @@ def extract_info_from_reports(list_path_reports):
 
     for report in list_path_reports:
         date_url = report.split("reports/")[1].split(".pdf")[0].replace("_", "-")
+        print(date_url)
         dates_url.append(date_url)
         text = pdf_to_text(report)
         text = (
@@ -220,7 +261,6 @@ def extract_info_from_reports(list_path_reports):
     # Turn percentages to float
     percs_unv1 = [float(perc.replace(",", ".")) for perc in percs_unv]
     cases_num1 = [float(num.replace(",", "")) for num in cases_num]
-
     # Put info in df
     df_hosp_unv = pd.DataFrame(
         {
@@ -245,16 +285,27 @@ def extract_info_from_reports(list_path_reports):
 
 
 missing_reports_from_PIO = pd.DataFrame(
+    # "2022-01-18" :  deaths in pdf are wrong (https://tinyurl.com/56fm4rzd)-> get correct from updated pio announc.: https://tinyurl.com/y99hof7l
     {
         # "date": datetime.strptime("2021-12-05", "%Y-%m-%d"),
-        "date": "2021-12-05",
-        "hospitalizations_dailyrep": 119,
-        "perc_hosp_unvaccinated": 68.91,
-        "daily new cases": 307,
-        "daily deaths": 0,
-        "perc_hosp_vaccinated": 100 - 68.91,
+        "date": ["2021-12-05", "2022-01-14"],
+        "hospitalizations_dailyrep": [119, 257],
+        "perc_hosp_unvaccinated": [68.91, 73.16],
+        "daily new cases": [307, 3042],
+        "daily deaths": [0, 0],
+        "perc_hosp_vaccinated": [100 - 68.91, 100 - 73.16],
     },
-    index=[0],
+    index=[0, 1],
+    # {
+    #     # "date": datetime.strptime("2021-12-05", "%Y-%m-%d"),
+    #     "date": "2021-12-05",
+    #     "hospitalizations_dailyrep": 119,
+    #     "perc_hosp_unvaccinated": 68.91,
+    #     "daily new cases": 307,
+    #     "daily deaths": 0,
+    #     "perc_hosp_vaccinated": 100 - 68.91,
+    # },
+    # index=[0],
 )
 
 

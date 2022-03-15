@@ -14,5 +14,15 @@ body {
     line-height: 25pt;
     font-family: Gill Sans MT, 'Times New Roman', Georgia, Arial, Helvetica, sans-serif;
     color: rgb(65, 65, 65);
-    font-size: 20px;
+    font-size: 40px;
   }
+
+.plotly-graph-div{
+    width: 70%;
+	height: 100vh;
+    font-size: 150%;
+}
+
+.container{
+    font-family:Arial, Helvetica, sans-serif
+}

@@ -9,6 +9,9 @@ import pandas as pd
 
 pd.options.mode.chained_assignment = None  # default='warn'
 
+PLOTS_WIDTH = 900
+PLOTS_HEIGHT = 600
+
 
 def save_figure_many_forms(fig, filename, png_w, png_h, png_scale):
     # Save figure
@@ -39,7 +42,8 @@ def save_figure_many_forms(fig, filename, png_w, png_h, png_scale):
 
 def cases_hosp_death(df):
     """The classical plot with time course of cases, hospitalizations & deaths"""
-
+    # df = df.query("date<='2022-01-13'")
+    # print(df["date"].iloc[-1])
     # Add 7-day moving average
     df["cases_movavg"] = df["daily new cases"].rolling(window=7, center=False).mean()
 
@@ -65,11 +69,12 @@ def cases_hosp_death(df):
     # Define names of parameters in plot in multiple languages
 
     # For cases-hosp-deaths plot
+    last_date_df = df["date"].iloc[-1].strftime("%d %B, %Y")
     languages = ["eng", "gr"]
     columns = {"number": {"eng": "Number", "gr": "Αριθμός"}}
     titles = {
-        "eng": "Daily new cases, hospitalizations & deaths related to COVID-19",
-        "gr": "Νέα ημερήσια κρούσματα, νοσηλείες και θάνατοι σχετιζόμενοι με COVID-19",
+        "eng": f"Daily new cases, hospitalizations & deaths related to COVID-19 <br>(until {last_date_df})",
+        "gr": f"Νέα ημερήσια κρούσματα, νοσηλείες και θάνατοι σχετιζόμενοι με COVID-19 <br>(εώς {last_date_df})",
     }
     categories = {
         "cases": {"eng": "Cases", "gr": "Κρούσματα"},
@@ -83,11 +88,14 @@ def cases_hosp_death(df):
 
     # For Deaths plot
     titles_d = {
-        "eng": "Daily new deaths related to COVID-19",
-        "gr": "Θάνατοι σχετιζόμενοι με COVID-19",
+        "eng": f"Daily new deaths related to COVID-19 (until {last_date_df})",
+        "gr": f"Θάνατοι σχετιζόμενοι με COVID-19 (until {last_date_df})",
     }
     categories_d = {
-        "deaths_daily": {"eng": "Deaths, daily", "gr": "Θάνατοι, ανά ημέρα"},
+        "deaths_daily": {
+            "eng": "Deaths, daily ",
+            "gr": "Θάνατοι, ανά ημέρα",
+        },
         "deaths_movavg": {
             "eng": "Deaths, 14-day average",
             "gr": "Θάνατοι, <br>μεσ. όρος 7 ημερών",
@@ -133,8 +141,8 @@ def cases_hosp_death(df):
             y="number",
             color="Category",
             custom_data=["Category"],
-            width=900,
-            height=600,
+            width=PLOTS_WIDTH,
+            height=PLOTS_HEIGHT,
             color_discrete_map={
                 categories["cases"][lang]: "#C5C5C5",
                 categories["cases_movavg"][lang]: "#1379FD",
@@ -146,7 +154,8 @@ def cases_hosp_death(df):
         )
 
         fig.update_layout(
-            font=dict(size=15, color="#2F2E31"),
+            # font=dict(size=15, color="#2F2E31"),
+            font=dict(color="#2F2E31"),
             plot_bgcolor="#FFEBD9",
             paper_bgcolor="#FFEBD9",
             yaxis=dict(
@@ -169,7 +178,9 @@ def cases_hosp_death(df):
 
         # fig.show()
 
-        save_figure_many_forms(fig, f"cases_hosp_deaths_{lang}", 900, 600, 3.0)
+        save_figure_many_forms(
+            fig, f"cases_hosp_deaths_{lang}", PLOTS_WIDTH, PLOTS_HEIGHT, 3.0
+        )
 
         ##############################################################
         # Plot separately covid-induced deaths + 14-day moving average
@@ -198,8 +209,8 @@ def cases_hosp_death(df):
             y="number",
             color="Category",
             custom_data=["Category"],
-            width=900,
-            height=600,
+            width=PLOTS_WIDTH,
+            height=PLOTS_HEIGHT,
             color_discrete_map={
                 categories_d["deaths_daily"][lang]: "#B9C4C5",
                 categories_d["deaths_movavg"][lang]: "#FFAE00",  # "#FFAE00"# "#FFB220"
@@ -209,7 +220,8 @@ def cases_hosp_death(df):
         )
 
         fig.update_layout(
-            font=dict(size=15, color="#2F2E31"),
+            # font=dict(size=15, color="#2F2E31"),
+            font=dict(color="#2F2E31"),
             plot_bgcolor="#FFEBD9",
             paper_bgcolor="#FFEBD9",
             yaxis=dict(
@@ -232,7 +244,7 @@ def cases_hosp_death(df):
         )
 
         # fig.show()
-        save_figure_many_forms(fig, f"deaths_{lang}", 900, 600, 3.0)
+        save_figure_many_forms(fig, f"deaths_{lang}", PLOTS_WIDTH, PLOTS_HEIGHT, 3.0)
 
 
 def hospitalizations_per_vaccination(df):
@@ -303,8 +315,8 @@ def hospitalizations_per_vaccination(df):
             y="n_hospitalized",
             color="Vaccination",
             custom_data=["Vaccination", "perc_hospitalized"],
-            width=900,
-            height=600,
+            width=PLOTS_WIDTH,
+            height=PLOTS_HEIGHT,
             color_discrete_map={
                 categories["unvacc"][lang]: "#D22727",
                 categories["vacc"][lang]: "#316F9A",
@@ -318,8 +330,9 @@ def hospitalizations_per_vaccination(df):
 
         fig.update_layout(
             hoverlabel_font=dict(color="#2F2E31"),  # =white
-            font=dict(size=15, color="#2F2E31"),
-            legend={"traceorder": "reversed"},
+            # font=dict(size=15, color="#2F2E31"),
+            font=dict(color="#2F2E31"),
+            legend=dict(traceorder="reversed"),
             plot_bgcolor="#FFEBD9",
             paper_bgcolor="#FFEBD9",
             yaxis=dict(
@@ -343,7 +356,11 @@ def hospitalizations_per_vaccination(df):
 
         # Save figure
         save_figure_many_forms(
-            fig, f"hospitalizations_per_vaccination_{lang}", 900, 600, 3.0
+            fig,
+            f"hospitalizations_per_vaccination_{lang}",
+            PLOTS_WIDTH,
+            PLOTS_HEIGHT,
+            3.0,
         )
 
 
@@ -576,8 +593,8 @@ def hospitalizations_per_vacc_per_100_00(df, dfv):
             y="n_hospitalized",
             color="Vaccination",
             custom_data=["Vaccination", "ratio_hosp_unvacc_vacc"],
-            width=900,
-            height=600,
+            width=PLOTS_WIDTH,
+            height=PLOTS_HEIGHT,
             color_discrete_map={
                 categories["unvacc"][lang]: "#D22727",
                 categories["vacc"][lang]: "#316F9A",
@@ -591,8 +608,9 @@ def hospitalizations_per_vacc_per_100_00(df, dfv):
 
         fig.update_layout(
             hoverlabel_font=dict(color="#2F2E31"),  # =white
-            font=dict(size=15, color="#2F2E31"),
-            legend={"traceorder": "reversed"},
+            # font=dict(size=15, color="#2F2E31"),
+            font=dict(color="#2F2E31"),
+            legend=dict(traceorder="reversed"),
             plot_bgcolor="#FFEBD9",
             paper_bgcolor="#FFEBD9",
             yaxis=dict(
@@ -632,7 +650,11 @@ def hospitalizations_per_vacc_per_100_00(df, dfv):
         # fig.show()
 
         save_figure_many_forms(
-            fig, f"hospitalizations_per_vacc_per_100_000_{lang}", 900, 600, 3.0
+            fig,
+            f"hospitalizations_per_vacc_per_100_000_{lang}",
+            PLOTS_WIDTH,
+            PLOTS_HEIGHT,
+            3.0,
         )
 
         #################################################################################
@@ -648,14 +670,15 @@ def hospitalizations_per_vacc_per_100_00(df, dfv):
             df_tmp,
             x="midweek",
             y="ratio_hosp_unvacc_vacc",
-            width=900,
-            height=600,
+            width=PLOTS_WIDTH,
+            height=PLOTS_HEIGHT,
             labels={"ratio_hosp_unvacc_vacc": columns["ratio_hosp_unvacc_vacc"][lang]},
             title=titles_f2[lang],
         )
 
         fig.update_layout(
-            font=dict(size=15, color="#2F2E31"),
+            # font=dict(size=15, color="#2F2E31"),
+            font=dict(color="#2F2E31"),
             plot_bgcolor="#FFEBD9",
             paper_bgcolor="#FFEBD9",
             yaxis=dict(
@@ -676,7 +699,11 @@ def hospitalizations_per_vacc_per_100_00(df, dfv):
         # fig.show()
 
         save_figure_many_forms(
-            fig, f"hospitalizations_per_vacc_per_100_000_ratio_{lang}", 900, 600, 3.0
+            fig,
+            f"hospitalizations_per_vacc_per_100_000_ratio_{lang}",
+            PLOTS_WIDTH,
+            PLOTS_HEIGHT,
+            3.0,
         )
 
 
@@ -684,17 +711,26 @@ def hospitalizations_by_severity(df):
     """Plotting hospitalisations after categorizing them in ICU, ICU intubated and not ICU"""
 
     # Define names of parameters in plot in multiple languag
+
+    # get last date with available data on severity of hospitalizations
+    last_date_df = (
+        df[df["Incubated Cases"].notna()]  # remove entries with non severity
+        .loc[:, "date"]
+        .iloc[-1]
+        .strftime("%d %B, %Y")
+    )
+
     languages = ["eng", "gr"]
     columns = {"hospit": {"eng": "Hospitalizations", "gr": "Νοσηλείες"}}
     titles = {
-        "eng": "Daily new hospitalizations by severity",
-        "gr": "Ημερήσιες νοσηλείες ανά σοβαρότητα",
+        "eng": f"Daily new hospitalizations by severity (until {last_date_df})",
+        "gr": f"Ημερήσιες νοσηλείες ανά σοβαρότητα (εώς {last_date_df})",
     }
     categories = {
-        "icu_intub": {"eng": "ICU, intubated", "gr": "Εντατική κ διασωλήνωση"},
+        "icu_intub": {"eng": "ICU, intubated", "gr": "Εντατική & διασωλήνωση"},
         "icu_nointub": {
             "eng": "ICU, not intubated",
-            "gr": "Εντατική χωρίς διασωλήνωση",
+            "gr": "Εντατική, όχι διασωλήνωση",
         },
         "no_icu": {"eng": "not in ICU", "gr": "Όχι στην εντατική"},
         "severe": {"eng": "Severe", "gr": "Σοβαρά"},
@@ -769,10 +805,11 @@ def hospitalizations_by_severity(df):
 
         fig.update_layout(
             title=dict(text=titles[lang]),
-            font=dict(size=15, color="#2F2E31"),
-            width=900,
-            height=600,
-            legend={"traceorder": "reversed"},
+            # font=dict(size=15, color="#2F2E31"),
+            font=dict(color="#2F2E31"),
+            width=PLOTS_WIDTH,
+            height=PLOTS_HEIGHT,
+            legend=dict(traceorder="reversed"),
             plot_bgcolor="#FFEBD9",
             paper_bgcolor="#FFEBD9",
             yaxis=dict(
@@ -794,7 +831,7 @@ def hospitalizations_by_severity(df):
 
         # Save figure
         save_figure_many_forms(
-            fig, f"hospitalizations_per_severity_{lang}", 900, 600, 3.0
+            fig, f"hospitalizations_per_severity_{lang}", PLOTS_WIDTH, PLOTS_HEIGHT, 3.0
         )
 
 
@@ -929,7 +966,7 @@ def vaccinations_by_age(dfv):
 
     titles = {
         "eng": f"Cyprus immunity wall (until {last_date})",
-        "gr": f"Εμβολιαστική κάλυψη στην Κύπρο (μέχρι {last_date})",
+        "gr": f"Εμβολιαστική κάλυψη στην Κύπρο (εώς {last_date})",
     }
 
     categories = {
@@ -980,8 +1017,8 @@ def vaccinations_by_age(dfv):
                 "target_group": columns["target_group"][lang],
             },
             custom_data=["vacc_category", "%_vaccinations"],
-            width=900,
-            height=600,
+            width=PLOTS_WIDTH,
+            height=PLOTS_HEIGHT,
             title=titles[lang],
         )
         # hover_data={"%_vaccinations" : ":.0f",
@@ -994,7 +1031,8 @@ def vaccinations_by_age(dfv):
         )
 
         fig.update_layout(
-            font=dict(size=15, color="#2F2E31"),
+            # font=dict(size=15, color="#2F2E31"),
+            font=dict(color="#2F2E31"),
             xaxis=dict(
                 tickmode="array",
                 tickvals=[0, 1, 2, 3, 4, 5, 6, 7, 8, 9],
@@ -1010,4 +1048,6 @@ def vaccinations_by_age(dfv):
         )
         # fig.show()
 
-        save_figure_many_forms(fig, f"vaccinations_by_age_{lang}", 900, 600, 3.0)
+        save_figure_many_forms(
+            fig, f"vaccinations_by_age_{lang}", PLOTS_WIDTH, PLOTS_HEIGHT, 3.0
+        )
