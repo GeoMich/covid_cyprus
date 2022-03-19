@@ -51,13 +51,13 @@ def make_plots():
 
 
 def run():
-    # scrape_update_data()
-    # merge_datasets()
-    # make_plots()
-    # h.make_html_eng()
-    # h.make_html_gr()
+    scrape_update_data()
+    merge_datasets()
+    make_plots()
+    h.make_html_eng()
+    h.make_html_gr()
     # h.make_html_gr_bootstrap()
-    h.git_push_new_html()
+    # h.git_push_new_html()
 
 
 if __name__ == "__main__":

@@ -31,6 +31,7 @@ def isolate_relevant_files(list_of_links):
         "Ανακοίνωση του Υπουργείου Υγείας για νέα περιστατικά της νόσου COVID-19",
         "Ανακοίνωση για επιβεβαίωση κρουσμάτων κορωνοϊού",
         "anakoinosikrousmata",
+        "Ανακοίνωση Υπουργείου Υγείας για νέα περιστατικά της νόσου COVID-19",
     ]
     links_daily_reports = [
         link
@@ -79,10 +80,11 @@ def replace_month_with_number(date_string):
 
 
 def extract_datetime(link):
-
+    print(link)
     try:
         # This uses datetime given after "upload/" in link
         date1 = link.split("uploads/")[1].split("--")[0]
+        date1 = date1.replace(" ", "")
         dt_report = datetime.strptime(date1, "%d%m%Y")  # .date()
     except ValueError:
         # this uses the date given before .pdf in case the above info is not provided
