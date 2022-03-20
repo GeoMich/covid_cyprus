@@ -80,7 +80,6 @@ def replace_month_with_number(date_string):
 
 
 def extract_datetime(link):
-    print(link)
     try:
         # This uses datetime given after "upload/" in link
         date1 = link.split("uploads/")[1].split("--")[0]
