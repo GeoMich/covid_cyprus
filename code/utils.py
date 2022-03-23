@@ -286,27 +286,17 @@ def extract_info_from_reports(list_path_reports):
 
 
 missing_reports_from_PIO = pd.DataFrame(
-    # "2022-01-18" :  deaths in pdf are wrong (https://tinyurl.com/56fm4rzd)-> get correct from updated pio announc.: https://tinyurl.com/y99hof7l
+    # "2022-03-22" : the pdf they provide is wrong document (https://bit.ly/3uiotot) -> get correct numbers from pio announcement : https://bit.ly/3JAPtG2
     {
         # "date": datetime.strptime("2021-12-05", "%Y-%m-%d"),
-        "date": ["2021-12-05", "2022-01-14"],
-        "hospitalizations_dailyrep": [119, 257],
-        "perc_hosp_unvaccinated": [68.91, 73.16],
-        "daily new cases": [307, 3042],
-        "daily deaths": [0, 0],
-        "perc_hosp_vaccinated": [100 - 68.91, 100 - 73.16],
+        "date": ["2021-12-05", "2022-01-14", "2022-03-22"],
+        "hospitalizations_dailyrep": [119, 257, 151],
+        "perc_hosp_unvaccinated": [68.91, 73.16, 52.99],
+        "daily new cases": [307, 3042, 4673],
+        "daily deaths": [0, 0, 3],
+        "perc_hosp_vaccinated": [100 - 68.91, 100 - 73.16, 100 - 52.99],
     },
-    index=[0, 1],
-    # {
-    #     # "date": datetime.strptime("2021-12-05", "%Y-%m-%d"),
-    #     "date": "2021-12-05",
-    #     "hospitalizations_dailyrep": 119,
-    #     "perc_hosp_unvaccinated": 68.91,
-    #     "daily new cases": 307,
-    #     "daily deaths": 0,
-    #     "perc_hosp_vaccinated": 100 - 68.91,
-    # },
-    # index=[0],
+    index=[0, 1, 2],
 )
 
 
