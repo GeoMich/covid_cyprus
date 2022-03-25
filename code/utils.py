@@ -4,6 +4,8 @@ import urllib
 import requests
 import pandas as pd
 import string
+from dateutil.parser import parse
+
 
 import io
 from pdfminer.pdfinterp import PDFResourceManager
@@ -32,6 +34,7 @@ def isolate_relevant_files(list_of_links):
         "Ανακοίνωση για επιβεβαίωση κρουσμάτων κορωνοϊού",
         "anakoinosikrousmata",
         "Ανακοίνωση Υπουργείου Υγείας για νέα περιστατικά της νόσου COVID-19",
+        "krousmataEL",
     ]
     links_daily_reports = [
         link
@@ -79,11 +82,28 @@ def replace_month_with_number(date_string):
     return new_string
 
 
+def is_date(string):
+    """
+    Return whether the string can be interpreted as a date.
+
+    :param string: str, string to check for date
+    """
+    try:
+        datetime.strptime(string, "%d%m%Y")
+        return True
+    except ValueError:
+        return False
+
+
 def extract_datetime(link):
     try:
         # This uses datetime given after "upload/" in link
-        date1 = link.split("uploads/")[1].split("--")[0]
-        date1 = date1.replace(" ", "")
+        strings_after_date_info = ["--", "_"]
+        for string_joint in strings_after_date_info:
+            date1 = link.split("uploads/")[1].split(string_joint)[0]
+            date1 = date1.replace(" ", "")
+            if is_date(date1):
+                break
         dt_report = datetime.strptime(date1, "%d%m%Y")  # .date()
     except ValueError:
         # this uses the date given before .pdf in case the above info is not provided
