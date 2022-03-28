@@ -35,6 +35,7 @@ def isolate_relevant_files(list_of_links):
         "anakoinosikrousmata",
         "Ανακοίνωση Υπουργείου Υγείας για νέα περιστατικά της νόσου COVID-19",
         "krousmataEL",
+        "Krousmata",
     ]
     links_daily_reports = [
         link
@@ -98,7 +99,7 @@ def is_date(string):
 def extract_datetime(link):
     try:
         # This uses datetime given after "upload/" in link
-        strings_after_date_info = ["--", "_"]
+        strings_after_date_info = ["--", "_", "-"]
         for string_joint in strings_after_date_info:
             date1 = link.split("uploads/")[1].split(string_joint)[0]
             date1 = date1.replace(" ", "")
